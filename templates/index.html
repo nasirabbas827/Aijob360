@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="logo" style="background: linear-gradient(to right, #3b82f6, #22c55e); width: 100px; height: 100px; display: inline-block; border-radius: 10px; margin-bottom: 1rem;">
+        <i class="fas fa-brain" style="color: white; font-size: 50px; margin: 25px;"></i>
+    </div>
+    <h1 class="main-heading">Job 360</h1>
+    <p class="sub-text">AI-Powered Job Portal</p>
+    <p class="">Find your perfect job and create professional CVs with the power of AI. Designed for students, <br> fresh graduates, and early-career professionals.</p>
+    <div class="my-4">
+        <div class="feature-icon job-matching m-4"><i class="fas fa-briefcase"></i></div>
+        <div class="feature-icon cv-generator"><i class="fas fa-file-alt"></i></div>
+        <div>
+            <small class="m-4">Smart Job Matching</small>
+            <small>AI CV Generator</small>
+         
+        </div>
+    </div>
+<a href="{% url 'login' %}" class="btn btn-login" style="border-radius: 10px;">Login</a>
+<a href="{% url 'register' %}" class="btn btn-register" style="border-radius: 10px;">Register</a>
+
+    <p class="trust-text">Trusted by thousands of job seekers</p>
+    <div class="trust-icons">
+        <i class="m-2 fas fa-user-graduate text-success"></i>Students
+        <i class="m-2 fas fa-graduation-cap text-success"></i>Graduates
+        <i class="m-2 fas fa-briefcase text-success"></i>Professionals
+    </div>
+{% endblock %}

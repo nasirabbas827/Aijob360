@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="logo" style="background: linear-gradient(to right, #3b82f6, #22c55e); width: 100px; height: 100px; display: inline-block; border-radius: 10px; margin-bottom: 1rem;">
+        <i class="fas fa-brain" style="color: white; font-size: 50px; margin: 25px;"></i>
+    </div>
+
+    <h1 class="main-heading">Join Job 360</h1>
+    <p class="sub-text">Create your account and start your career journey</p>
+
+    <div class="card p-4" style="max-width: 420px; margin: 0 auto; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: left;">
+        <h4 class="mb-2 text-start fw-bold text-center" style="color: #111827;">Register</h4>
+        <p class="mb-4 text-start text-center" style="color: #6b7280;">Fill in your details to get started</p>
+
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="id_full_name" class="form-label">Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" name="full_name" id="id_full_name" class="form-control" placeholder="Enter your full name" value="{{ form.full_name.value|default_if_none:'' }}" required>
+                </div>
+                {{ form.full_name.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_email" class="form-label">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    <input type="email" name="email" id="id_email" class="form-control" placeholder="Enter your email" value="{{ form.email.value|default_if_none:'' }}" required>
+                </div>
+                {{ form.email.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password" id="id_password" class="form-control" placeholder="Create a password" required>
+                </div>
+                {{ form.password.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_confirm_password" class="form-label">Confirm Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="confirm_password" id="id_confirm_password" class="form-control" placeholder="Confirm your password" required>
+                </div>
+                {{ form.confirm_password.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_skills" class="form-label">Skills</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-list"></i></span>
+                    <textarea name="skills" id="id_skills" class="form-control" placeholder="JavaScript, Python etc. (comma-separated)" rows="3" required>{{ form.skills.value|default_if_none:'' }}</textarea>
+                </div>
+                {{ form.skills.errors }}
+            </div>
+
+            <button type="submit" class="btn w-100 mt-2" style="background-color: #22c55e; color: white; border: none; padding: 10px; border-radius: 5px;">
+                Create Account <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <p class="text-center mt-3" style="color: #6b7280;">Already have an account?
+            <a href="{% url 'login' %}" class="text-decoration-none" style="color: #2563eb;">Login here</a>
+        </p>
+        <p class="text-center mt-2"><a href="{% url 'index' %}" class="text-decoration-none" style="color: #6b7280;">← Back to Home</a></p>
+    </div>
+{% endblock %}
