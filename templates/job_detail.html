@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid"
+    style="background: linear-gradient(to bottom, #e6f0fa, #ffffff); min-height: 100vh; padding: 2rem 1rem;">
+    <div class="row">
+        <!-- Main Job Details -->
+        <div class="col-md-8">
+            <div class="card p-4 mb-4"
+                style="border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h2 class="h4 fw-bold text-dark mb-1">{{ job.title }}</h2>
+                        <div class="text-muted small">
+                            {{ job.company }} &bull; {{ job.location }}
+                        </div>
+                    </div>
+                    <div>
+                        <form action="{% url 'generate_resume' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="job_url" value="{{ meta.url }}">
+                            <button type="submit" class="btn btn-success"
+                                style="background: linear-gradient(to right, #22c55e, #16a34a); border: none;">
+                                <i class="fas fa-magic me-1"></i> Generate AI CV
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h3 class="h5 fw-bold text-dark mb-2">Job Description</h3>
+                    <div class="text-muted job-description" style="line-height: 1.6;">
+                        {{ job.descriptionHtml|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Company Info -->
+        <div class="col-md-4">
+            <div class="card p-4 mb-4"
+                style="border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+                <h3 class="h5 fw-bold text-dark mb-2">About {{ job.company }}</h3>
+                <div class="text-muted small mb-2">Industry: {{ job.industry|default:"Technology" }}</div>
+                <p class="text-muted mb-2">A leading company focused on creating
+                    innovative solutions for modern businesses.</p>
+            </div>
+            <div class="mt-3 apply-section p-4 text-center"
+                style="border-radius: 12px; background: linear-gradient(to right, #22c55e, #16a34a); color: #ffffff; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                <h3 class="h5 fw-bold mb-2">Ready to Apply?</h3>
+                <p class="mb-3">Generate your AI-powered CV tailored for this position</p>
+                <form action="{% url 'generate_resume' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="job_url" value="{{ meta.url }}">
+                    <button type="submit" class="btn btn-light"
+                        style="background: #ffffff; color: #22c55e; border: none; font-weight: 500; padding: 0.5rem 1.5rem;">
+                        <i class="fas fa-file-alt me-1" style="color: #22c55e;"></i> Generate CV Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card p-4" style="border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
+        <div class="d-flex justify-content-end gap-2 flex-wrap">
+            <a href="{{ meta.url }}" target="_blank" class="btn btn-primary">
+                <i class="fas fa-external-link-alt me-1"></i> View on Indeed
+            </a>
+            <form action="{% url 'toggle_save_job' meta.url %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="title" value="{{ job.title }}">
+                <input type="hidden" name="company" value="{{ job.company }}">
+                <input type="hidden" name="location" value="{{ job.location }}">
+                <input type="hidden" name="job_type" value="{{ job.job_type }}">
+                <input type="hidden" name="description" value="{{ job.descriptionHtml|safe }}">
+                {% if job.is_saved %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-bookmark me-1"></i> Remove Job
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-bookmark me-1"></i> Save Job
+                </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .job-description ul,
+    .job-description ol {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .job-description li {
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+
+    .job-description li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #6b7280;
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        font-family: 'Inter', 'Arial', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-success {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(to right, #16a34a, #22c55e);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-success:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-danger {
+        background: linear-gradient(to right, #ef4444, #dc2626);
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(to right, #dc2626, #ef4444);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-danger:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+    }
+
+    .badge {
+        border-radius: 6px;
+        padding: 0.25rem 0.75rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #ffffff;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(to right, #6b7280, #9ca3af);
+    }
+
+    .badge.bg-info {
+        background: linear-gradient(to right, #06b6d4, #22d3ee);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .container-fluid {
+            background: linear-gradient(to bottom, #1e3a8a, #1f2937);
+        }
+
+        .text-dark {
+            color: #e5e7eb !important;
+        }
+
+        .text-muted {
+            color: #9ca3af !important;
+        }
+
+        .card {
+            background: #2d3748;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .job-description li::before {
+            color: #9ca3af;
+        }
+    }
+
+    .apply-section {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .apply-section:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-light {
+        border-radius: 8px;
+        font-family: 'Inter', 'Arial', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .btn-light:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-light:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .apply-section {
+            background: linear-gradient(to right, #14532d, #1e3a8a);
+            color: #e5e7eb;
+        }
+
+        .btn-light {
+            background: #2d3748;
+            color: #4ade80;
+        }
+
+        .btn-light:hover {
+            background: #374151;
+        }
+
+        .btn-light .fas {
+            color: #4ade80;
+        }
+    }
+</style>
+{% endblock %}

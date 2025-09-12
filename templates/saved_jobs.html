@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="background: linear-gradient(to bottom, #e6f0fa, #ffffff); min-height: 100vh; padding: 2rem 1rem;">
+    <h2 class="h4 fw-bold text-dark mb-4">My Saved Jobs</h2>
+
+    {% if saved_jobs %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for job in saved_jobs %}
+                <div class="col">
+                    <div class="card p-3" style="border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: all 0.3s ease;">
+                        <h4 class="fw-bold mb-2">{{ job.title }}</h4>
+                        <p class="mb-1"><strong>Company:</strong> {{ job.company }}</p>
+                        <p class="mb-1"><strong>Location:</strong> {{ job.location }}</p>
+                        <p class="mb-1"><strong>Type:</strong> {{ job.job_type }}</p>
+                        <p class="text-muted small">Saved on {{ job.saved_at|date:"M d, Y H:i" }}</p>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{{ job.job_url }}" target="_blank" class="btn btn-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i> View Job
+                            </a>
+                            <form action="{% url 'toggle_save_job' job.job_url %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="title" value="{{ job.title }}">
+                                <input type="hidden" name="company" value="{{ job.company }}">
+                                <input type="hidden" name="location" value="{{ job.location }}">
+                                <input type="hidden" name="job_type" value="{{ job.job_type }}">
+                                <input type="hidden" name="description" value="{{ job.description }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash me-1"></i> Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" style="border-radius: 8px;">
+            You haven’t saved any jobs yet.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        font-family: 'Inter', 'Arial', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-danger {
+        background: linear-gradient(to right, #ef4444, #dc2626);
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(to right, #dc2626, #ef4444);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-danger:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+    }
+
+    .alert-info {
+        background-color: #e0f2fe;
+        border-color: #b6e0fe;
+        color: #1e40af;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .container {
+            background: linear-gradient(to bottom, #1e3a8a, #1f2937);
+        }
+
+        .text-dark {
+            color: #e5e7eb !important;
+        }
+
+        .text-muted {
+            color: #9ca3af !important;
+        }
+
+        .card {
+            background: #2d3748;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .alert-info {
+            background-color: #1e3a8a;
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+    }
+</style>

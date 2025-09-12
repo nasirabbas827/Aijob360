@@ -10,12 +10,15 @@ class JobSeekerForm(forms.ModelForm):
         model = JobSeeker
         fields = [
             'full_name', 'email', 'password', 'confirm_password', 'phone_number',
-            'location', 'education', 'work_experience', 'skills', 'certificate'
+            'location', 'education', 'work_experience', 'skills', 'certificate',
+            'job_type', 'professional_references'
         ]
         widgets = {
             'education': forms.Textarea(attrs={'rows': 3}),
             'work_experience': forms.Textarea(attrs={'rows': 3}),
             'certificate': forms.Textarea(attrs={'rows': 2}),
+            'professional_references': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Name, Position, Company, Contact Info'}),
+            'job_type': forms.Select(),
         }
 
     def clean_email(self):
@@ -39,10 +42,6 @@ class JobSeekerForm(forms.ModelForm):
             else:
                 cleaned_data['password'] = make_password(password)
         return cleaned_data
-
-from django import forms
-from .models import JobSeeker
-from django.contrib.auth.hashers import make_password
 
 class JobSeekerRegisterForm(forms.ModelForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password'}))

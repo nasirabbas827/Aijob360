@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid" style="background-color: #f8fafc; min-height: 100vh; padding: 2rem;">
+<div class="container-fluid" style="background: linear-gradient(to right, #f8fafc, #f0fdf4); min-height: 100vh; padding: 2rem 1rem;">
     <!-- Header -->
-    <div class="mb-4">
+    <div class="mb-5">
         <h1 class="h3 fw-bold text-dark mb-2">Welcome back! ✨ {{ jobseeker.full_name }}</h1>
-        <p class="text-muted">Here are your AI-powered website developer job recommendations</p>
+        <p class="text-muted lead">Here are your AI-powered website developer job recommendations</p>
     </div>
 
     <!-- Stats Cards -->
@@ -53,320 +53,188 @@
         </div>
     </div>
 
-    <!-- Job Recommendations Header -->
-    <div class="d-flex align-items-center mb-4">
-        <i class="fas fa-shield-alt me-2 text-dark"></i>
-        <h2 class="h4 fw-bold text-dark mb-0">Website Developer Job Recommendations</h2>
-    </div>
 
-    <!-- Job Cards Grid -->
-    <div class="row g-4">
-        <!-- Job Card 1 -->
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0 h-100" style="border-radius: 12px; border-left: 4px solid #3b82f6 !important;">
-                <div class="card-body p-4">
-                    <!-- Job Header -->
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="fw-bold text-dark mb-0">Senior Website Developer</h5>
-                        <span class="badge" style="background-color: #dcfce7; color: #166534; font-weight: 600;">95% Match</span>
-                    </div>
-
-                    <!-- Company Info -->
-                    <div class="d-flex align-items-center text-muted mb-3">
-                        <i class="fas fa-building me-2"></i>
-                        <small>WebTech Solutions @ San Francisco, CA</small>
-                    </div>
-
-                    <!-- Match Breakdown -->
-                    <div class="mb-3">
-                        <p class="text-muted mb-2" style="font-size: 0.875rem;">Match Breakdown:</p>
-                        
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Skills</small>
-                                <small class="fw-medium">92%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-primary" style="width: 92%; border-radius: 3px;"></div>
-                            </div>
+    <!-- Job Recommendations -->
+    <h2 class="h4 fw-bold text-dark mb-4">Recommended Jobs</h2>
+    {% if jobs %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for job in jobs %}
+                <div class="col">
+                    <div class="card h-100 p-3" style="border: none; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: all 0.3s ease;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">
+                                <a href="{% url 'job_detail' %}?url={{ job.url|urlencode }}" class="text-dark text-decoration-none fw-semibold">
+                                    {{ job.title }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-muted mb-1">{{ job.company }} - {{ job.location }}</p>
+                            <p class="card-text"><small class="text-muted">{{ job.date }}</small></p>
+                            <span class="badge bg-primary mt-auto">{{ job.job_type|title }}</span>
                         </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Education</small>
-                                <small class="fw-medium">95%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-success" style="width: 95%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Location</small>
-                                <small class="fw-medium">98%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar" style="background-color: #8b5cf6; width: 98%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Salary and Job Info -->
-                    <div class="mb-3">
-                        <p class="fw-bold text-success mb-1" style="font-size: 1.1rem;">$85,000 - $110,000</p>
-                        <small class="text-muted">Full-time | 1 day ago</small>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm flex-fill">
-                            <i class="fas fa-eye me-1"></i> View Details
-                        </button>
-                        <button class="btn btn-success btn-sm flex-fill">
-                            <i class="fas fa-download me-1"></i> Generate CV
-                        </button>
                     </div>
                 </div>
-            </div>
+            {% endfor %}
         </div>
-
-        <!-- Job Card 2 -->
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0 h-100" style="border-radius: 12px; border-left: 4px solid #10b981 !important;">
-                <div class="card-body p-4">
-                    <!-- Job Header -->
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="fw-bold text-dark mb-0">Frontend Website Developer</h5>
-                        <span class="badge" style="background-color: #dcfce7; color: #166534; font-weight: 600;">88% Match</span>
-                    </div>
-
-                    <!-- Company Info -->
-                    <div class="d-flex align-items-center text-muted mb-3">
-                        <i class="fas fa-building me-2"></i>
-                        <small>Digital Innovations LLC @ New York, NY</small>
-                    </div>
-
-                    <!-- Match Breakdown -->
-                    <div class="mb-3">
-                        <p class="text-muted mb-2" style="font-size: 0.875rem;">Match Breakdown:</p>
-                        
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Skills</small>
-                                <small class="fw-medium">90%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-primary" style="width: 90%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Education</small>
-                                <small class="fw-medium">85%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-success" style="width: 85%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Location</small>
-                                <small class="fw-medium">90%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar" style="background-color: #8b5cf6; width: 90%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Salary and Job Info -->
-                    <div class="mb-3">
-                        <p class="fw-bold text-success mb-1" style="font-size: 1.1rem;">$70,000 - $95,000</p>
-                        <small class="text-muted">Full-time | 2 days ago</small>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm flex-fill">
-                            <i class="fas fa-eye me-1"></i> View Details
-                        </button>
-                        <button class="btn btn-success btn-sm flex-fill">
-                            <i class="fas fa-download me-1"></i> Generate CV
-                        </button>
-                    </div>
-                </div>
-            </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            No job recommendations available right now.
         </div>
-
-        <!-- Job Card 3 -->
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0 h-100" style="border-radius: 12px; border-left: 4px solid #3b82f6 !important;">
-                <div class="card-body p-4">
-                    <!-- Job Header -->
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="fw-bold text-dark mb-0">Full Stack Website Developer</h5>
-                        <span class="badge" style="background-color: #dcfce7; color: #166534; font-weight: 600;">91% Match</span>
-                    </div>
-
-                    <!-- Company Info -->
-                    <div class="d-flex align-items-center text-muted mb-3">
-                        <i class="fas fa-building me-2"></i>
-                        <small>CodeCraft Studios @ Remote</small>
-                    </div>
-
-                    <!-- Match Breakdown -->
-                    <div class="mb-3">
-                        <p class="text-muted mb-2" style="font-size: 0.875rem;">Match Breakdown:</p>
-                        
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Skills</small>
-                                <small class="fw-medium">90%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-primary" style="width: 90%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Education</small>
-                                <small class="fw-medium">92%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-success" style="width: 92%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Location</small>
-                                <small class="fw-medium">90%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar" style="background-color: #8b5cf6; width: 90%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Salary and Job Info -->
-                    <div class="mb-3">
-                        <p class="fw-bold text-success mb-1" style="font-size: 1.1rem;">$75,000 - $100,000</p>
-                        <small class="text-muted">Full-time | 1 day ago</small>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm flex-fill">
-                            <i class="fas fa-eye me-1"></i> View Details
-                        </button>
-                        <button class="btn btn-success btn-sm flex-fill">
-                            <i class="fas fa-download me-1"></i> Generate CV
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Job Card 4 -->
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0 h-100" style="border-radius: 12px; border-left: 4px solid #10b981 !important;">
-                <div class="card-body p-4">
-                    <!-- Job Header -->
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="fw-bold text-dark mb-0">WordPress Website Developer</h5>
-                        <span class="badge" style="background-color: #dcfce7; color: #166534; font-weight: 600;">82% Match</span>
-                    </div>
-
-                    <!-- Company Info -->
-                    <div class="d-flex align-items-center text-muted mb-3">
-                        <i class="fas fa-building me-2"></i>
-                        <small>Creative Web Agency @ Austin, TX</small>
-                    </div>
-
-                    <!-- Match Breakdown -->
-                    <div class="mb-3">
-                        <p class="text-muted mb-2" style="font-size: 0.875rem;">Match Breakdown:</p>
-                        
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Skills</small>
-                                <small class="fw-medium">85%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-primary" style="width: 85%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Education</small>
-                                <small class="fw-medium">85%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-success" style="width: 85%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="text-muted">Location</small>
-                                <small class="fw-medium">80%</small>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar" style="background-color: #8b5cf6; width: 80%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Salary and Job Info -->
-                    <div class="mb-3">
-                        <p class="fw-bold text-success mb-1" style="font-size: 1.1rem;">$55,000 - $75,000</p>
-                        <small class="text-muted">Full-time | 3 days ago</small>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm flex-fill">
-                            <i class="fas fa-eye me-1"></i> View Details
-                        </button>
-                        <button class="btn btn-success btn-sm flex-fill">
-                            <i class="fas fa-download me-1"></i> Generate CV
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add more job cards following the same pattern... -->
-    </div>
+    {% endif %}
 </div>
 
 <style>
     .card {
-        transition: all 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     }
-    
+
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
     }
-    
+
+    .card-title a {
+        transition: color 0.3s ease;
+    }
+
+    .card-title a:hover {
+        color: #2563eb;
+    }
+
+    .card-title a:focus {
+        outline: none;
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    .badge {
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        color: white;
+        transition: transform 0.3s ease;
+    }
+
+    .badge:hover {
+        transform: scale(1.05);
+    }
+
     .btn {
         border-radius: 8px;
         font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
     }
-    
-    .badge {
-        border-radius: 6px;
-        padding: 0.5rem 0.75rem;
+
+    .btn-primary {
+        background: linear-gradient(to bottom, #3b82f6, #2563eb);
+        border: none;
     }
-    
+
+    .btn-primary:hover {
+        background: linear-gradient(to bottom, #2563eb, #1d4ed8);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(to bottom, #6b7280, #4b5563);
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(to bottom, #4b5563, #374151);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
+    }
+
     .progress {
         background-color: #e5e7eb;
+        border-radius: 8px;
+        height: 1.2rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 0.75rem;
+        font-family: 'Inter', 'Arial', sans-serif;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-control::placeholder, .form-select::placeholder {
+        color: #9ca3af;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .container-fluid {
+            background: linear-gradient(to right, #1e3a8a, #14532d);
+        }
+
+        .text-dark {
+            color: #e5e7eb !important;
+        }
+
+        .text-muted {
+            color: #9ca3af !important;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .card-title a {
+            color: #e5e7eb;
+        }
+
+        .card-title a:hover, .card-title a:focus {
+            color: #60a5fa;
+        }
+
+        .badge {
+            background: linear-gradient(to right, #60a5fa, #93c5fd);
+        }
+
+        .alert-info {
+            background-color: #374151;
+            color: #e5e7eb;
+            border-color: #4b5563;
+        }
     }
 </style>
 {% endblock %}
