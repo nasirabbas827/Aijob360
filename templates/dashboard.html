@@ -2,10 +2,13 @@
 
 {% block content %}
 <div class="container-fluid" style="background: linear-gradient(to right, #f8fafc, #f0fdf4); min-height: 100vh; padding: 2rem 1rem;">
+    
     <!-- Header -->
-    <div class="mb-5">
-        <h1 class="h3 fw-bold text-dark mb-2">Welcome back! ✨ {{ jobseeker.full_name }}</h1>
-        <p class="text-muted lead">Here are your AI-powered website developer job recommendations</p>
+    <div class="mb-5 text-center text-md-start">
+        <h1 class="h3 fw-bold text-dark mb-2 text-center">Welcome back!  {{ jobseeker.full_name }}</h1>
+        <p class="text-muted lead text-center">
+            Personalized job recommendations in <strong>{{ location }}</strong>
+        </p>
     </div>
 
     <!-- Stats Cards -->
@@ -15,10 +18,10 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="mb-1 opacity-75" style="font-size: 0.875rem;">Jobs Matched</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2rem;">10</h2>
+                            <p class="mb-1 opacity-75" style="font-size: 0.875rem;">Jobs Found</p>
+                            <h2 class="fw-bold mb-0" style="font-size: 2rem;">{{ jobs|length }}</h2>
                         </div>
-                        <i class="fas fa-star" style="font-size: 2rem; opacity: 0.7;"></i>
+                        <i class="fas fa-search" style="font-size: 2rem; opacity: 0.7;"></i>
                     </div>
                 </div>
             </div>
@@ -29,10 +32,12 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="mb-1 opacity-75" style="font-size: 0.875rem;">Avg Match</p>
-                            <h2 class="fw-bold mb-0" style="font-size: 2rem;">86%</h2>
+                            <p class="mb-1 opacity-75" style="font-size: 0.875rem;">Best Match</p>
+                            <h2 class="fw-bold mb-0" style="font-size: 2rem;">
+                                {% if jobs %}{{ jobs.0.match_score|floatformat:0 }}%{% else %}—{% endif %}
+                            </h2>
                         </div>
-                        <i class="fas fa-cogs" style="font-size: 2rem; opacity: 0.7;"></i>
+                        <i class="fas fa-star" style="font-size: 2rem; opacity: 0.7;"></i>
                     </div>
                 </div>
             </div>
@@ -53,187 +58,113 @@
         </div>
     </div>
 
-
     <!-- Job Recommendations -->
     <h2 class="h4 fw-bold text-dark mb-4">Recommended Jobs</h2>
+
     {% if jobs %}
-        <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             {% for job in jobs %}
                 <div class="col">
-                    <div class="card h-100 p-3" style="border: none; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: all 0.3s ease;">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title mb-2">
-                                <a href="{% url 'job_detail' %}?url={{ job.url|urlencode }}" class="text-dark text-decoration-none fw-semibold">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; transition: all 0.3s ease; background: #ffffff;">
+                        <div class="card-body d-flex flex-column p-4">
+                            <h5 class="card-title mb-3 fw-semibold">
+                                <a href="{% url 'job_detail' %}?url={{ job.url|urlencode }}" 
+                                   class="text-dark text-decoration-none" 
+                                   target="_blank" rel="noopener">
                                     {{ job.title }}
                                 </a>
                             </h5>
-                            <p class="card-text text-muted mb-1">{{ job.company }} - {{ job.location }}</p>
-                            <p class="card-text"><small class="text-muted">{{ job.date }}</small></p>
-                            <span class="badge bg-primary mt-auto">{{ job.job_type|title }}</span>
+
+                            <p class="text-muted mb-2">
+                                <strong>{{ job.company }}</strong> • {{ job.location }}
+                            </p>
+
+                            <p class="text-muted small mb-3">
+                                Posted: {{ job.date }}
+                            </p>
+
+                            <!-- Match Progress Bar -->
+                            {% if job.match_score is not None %}
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Match Score</small>
+                                        <small class="fw-bold">{{ job.match_score }}%</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ job.match_score }}%;" 
+                                             aria-valuenow="{{ job.match_score }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="mt-3">
+                                    <small class="text-muted">Match Score: Not calculated</small>
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-auto d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3">
+                                <span class="badge bg-primary px-3 py-2">
+                                    {{ job.job_type|title }}
+                                </span>
+                                <a href="{% url 'generate_resume' %}?job_url={{ job.url|urlencode }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    Generate Resume
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-info text-center" role="alert">
-            No job recommendations available right now.
+        <div class="alert alert-info text-center py-5" role="alert">
+            <i class="fas fa-search fa-3x mb-3 text-primary"></i>
+            <h5>No jobs found in <strong>{{ location }}</strong></h5>
+            <p class="mb-0">
+                Try updating your skills, changing your location, or checking back later!
+            </p>
         </div>
     {% endif %}
 </div>
 
 <style>
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: none;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    }
-
     .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
-    }
-
-    .card-title a {
-        transition: color 0.3s ease;
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
     }
 
     .card-title a:hover {
         color: #2563eb;
-    }
-
-    .card-title a:focus {
-        outline: none;
-        color: #2563eb;
         text-decoration: underline;
     }
 
-    .badge {
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        font-size: 0.9rem;
-        background: linear-gradient(to right, #3b82f6, #60a5fa);
-        color: white;
-        transition: transform 0.3s ease;
+    .progress-bar {
+        transition: width 0.6s ease;
     }
 
-    .badge:hover {
-        transform: scale(1.05);
-    }
-
-    .btn {
-        border-radius: 8px;
-        font-weight: 500;
-        padding: 0.75rem 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-        background: linear-gradient(to bottom, #3b82f6, #2563eb);
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(to bottom, #2563eb, #1d4ed8);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-primary:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-secondary {
-        background: linear-gradient(to bottom, #6b7280, #4b5563);
-        border: none;
-    }
-
-    .btn-secondary:hover {
-        background: linear-gradient(to bottom, #4b5563, #374151);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-secondary:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.3);
-    }
-
-    .progress {
-        background-color: #e5e7eb;
-        border-radius: 8px;
-        height: 1.2rem;
-    }
-
-    .form-label {
-        font-weight: 500;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #d1d5db;
-        padding: 0.75rem;
-        font-family: 'Inter', 'Arial', sans-serif;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-
-    textarea.form-control {
-        resize: vertical;
-        min-height: 100px;
-    }
-
-    .form-control::placeholder, .form-select::placeholder {
-        color: #9ca3af;
+    .btn-outline-primary {
+        font-size: 0.85rem;
     }
 
     @media (prefers-color-scheme: dark) {
         .container-fluid {
             background: linear-gradient(to right, #1e3a8a, #14532d);
         }
-
+        .card {
+            background: #1f2937;
+        }
         .text-dark {
             color: #e5e7eb !important;
         }
-
         .text-muted {
             color: #9ca3af !important;
         }
-
-        .card {
-            background: linear-gradient(135deg, #1f2937, #374151);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .card:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        .card-title a {
-            color: #e5e7eb;
-        }
-
-        .card-title a:hover, .card-title a:focus {
-            color: #60a5fa;
-        }
-
-        .badge {
-            background: linear-gradient(to right, #60a5fa, #93c5fd);
-        }
-
         .alert-info {
             background-color: #374151;
-            color: #e5e7eb;
             border-color: #4b5563;
+            color: #e5e7eb;
         }
     }
 </style>
