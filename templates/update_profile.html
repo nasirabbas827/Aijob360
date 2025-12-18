@@ -1,13 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-
 <h1 class="main-heading">Profile form</h1>
 <p class="sub-text">Edit your personal and professional details</p>
-
 <div class="card p-4" style="max-width: 900px; margin: 0 auto; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: left;">
     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         {% csrf_token %}
-
+        
         {% if jobseeker.profile_picture %}
         <div class="d-flex justify-content-center mb-3">
             <div class="position-relative">
@@ -17,23 +15,23 @@
             </div>
         </div>
         {% endif %}
-
+        
         <div class="mb-3">
             <label for="id_profile_picture" class="form-label"><i class="fas fa-image"></i> Profile Picture</label>
-            <input type="file" name="profile_picture" id="id_profile_picture" class="form-control">
+            <input type="file" name="profile_picture" id="id_profile_picture" class="form-control" accept="image/*">
         </div>
-
+        
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="id_full_name" class="form-label"><i class="fas fa-user"></i> Full Name</label>
                 <input type="text" name="full_name" id="id_full_name" class="form-control" placeholder="Enter your full name" value="{{ jobseeker.full_name|default_if_none:'' }}" required>
             </div>
             <div class="col-md-6">
-                <label for="id_email" class="form-label"><i class="fas fa-envelope"></i> Email</label>
-                <input type="email" name="email" id="id_email" class="form-control" placeholder="your.email@example.com" value="{{ jobseeker.email|default_if_none:'' }}" required>
+                <label class="form-label"><i class="fas fa-envelope"></i> Email <strong style="color: red;">(cannot be changed)</strong></label>
+                <input type="email" class="form-control" placeholder="your.email@example.com" value="{{ jobseeker.email|default_if_none:'' }}" readonly>
             </div>
         </div>
-
+        
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="id_phone_number" class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
@@ -44,41 +42,71 @@
                 <input type="text" name="location" id="id_location" class="form-control" placeholder="City, State/Country" value="{{ jobseeker.location|default_if_none:'' }}" required>
             </div>
         </div>
-<div class="mb-3">
-
-        <label for="id_job_type" class="form-label"><i class="fas fa-briefcase"></i> Preferred Job Type</label>
-        <select name="job_type" id="id_job_type" class="form-control" required>
-            {% for value, label in job_type_choices %}
-                <option value="{{ value }}" {% if jobseeker.job_type == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-        </select>
-</div>
-
+        
+        <!-- Preferred Job Type(s) - Radio-style Checkboxes (Multi-select) -->
+        <div class="mb-4">
+            <label class="form-label"><i class="fas fa-briefcase"></i> Preferred Job Type(s)</label>
+            <div class="row g-3">
+                {% for value, label in job_type_choices %}
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="form-check border rounded-3 p-3 shadow-sm hover-shadow {% if value in jobseeker.get_job_type_list %}border-primary bg-light{% endif %}">
+                        <input class="form-check-input" type="checkbox" name="job_type" value="{{ value }}" id="job_type_{{ value }}"
+                               {% if value in jobseeker.get_job_type_list %}checked{% endif %}>
+                        <label class="form-check-label fw-medium text-dark" for="job_type_{{ value }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="form-text mt-2">You can select multiple job types that interest you.</div>
+        </div>
+        
         <div class="mb-3">
             <label for="id_education" class="form-label"><i class="fas fa-graduation-cap"></i> Education</label>
             <textarea name="education" id="id_education" class="form-control" placeholder="Degree, Institution, Years (e.g., Bachelor of Computer Science, MIT, 2020-2024)" rows="3" required>{{ jobseeker.education|default_if_none:'' }}</textarea>
         </div>
-
+        
         <div class="mb-3">
             <label for="id_work_experience" class="form-label"><i class="fas fa-briefcase"></i> Work Experience</label>
             <textarea name="work_experience" id="id_work_experience" class="form-control" placeholder="Job title, Company, Duration, Key responsibilities..." rows="3">{{ jobseeker.work_experience|default_if_none:'' }}</textarea>
         </div>
-
+        
         <div class="mb-3">
             <label for="id_skills" class="form-label"><i class="fas fa-tools"></i> Skills</label>
             <textarea name="skills" id="id_skills" class="form-control" placeholder="JavaScript, Python, React, Communication, etc. (comma-separated)" rows="3" required>{{ jobseeker.skills|default_if_none:'' }}</textarea>
+            <div class="form-text">List programming languages, technical, and soft skills.</div>
         </div>
-
+        
+        <!-- Certifications Text + File Upload -->
         <div class="mb-3">
             <label for="id_certificate" class="form-label"><i class="fas fa-certificate"></i> Certifications</label>
-            <textarea name="certificate" id="id_certificate" class="form-control" placeholder="AWS Certified, Google Analytics, etc." rows="2">{{ jobseeker.certificate|default_if_none:'' }}</textarea>
+            <textarea name="certificate" id="id_certificate" class="form-control"
+                      placeholder="AWS Certified Solutions Architect, Google Data Analytics, Cisco CCNA, etc." rows="2">{{ jobseeker.certificate|default_if_none:'' }}</textarea>
+            <div class="form-text">List your certifications here.</div>
         </div>
-
+        
+        <div class="mb-4">
+            <label for="id_certification_files" class="form-label"><i class="fas fa-file-upload"></i> Upload Certification Proofs</label>
+            <input type="file" name="certification_files" id="id_certification_files" class="form-control"
+                   accept=".pdf,.jpg,.jpeg,.png">
+            {% if jobseeker.certification_files %}
+                <div class="mt-2">
+                    <small>Current file: 
+                        <a href="{{ jobseeker.certification_files.url }}" target="_blank">
+                            {{ jobseeker.certification_files.name|cut:"certifications/" }}
+                        </a>
+                    </small>
+                </div>
+            {% endif %}
+            <div class="form-text">Supported formats: PDF, JPG, JPEG, PNG (Optional proof upload)</div>
+        </div>
+        
         <div class="mb-4">
             <label for="id_professional_references" class="form-label"><i class="fas fa-users"></i> Professional References</label>
             <textarea name="professional_references" id="id_professional_references" class="form-control" placeholder="Name, Position, Company, Contact Info" rows="3">{{ jobseeker.professional_references|default_if_none:'' }}</textarea>
         </div>
-
+        
         <div class="d-flex justify-content-end">
             <button type="submit" class="btn btn-primary me-2">
                 <i class="fas fa-save me-1"></i> Save / Update
@@ -90,4 +118,18 @@
     </form>
 </div>
 
+<!-- Optional: Add some custom CSS for better hover effect -->
+<style>
+    .form-check.hover-shadow {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .form-check.hover-shadow:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+    }
+    .form-check-input:checked + .form-check-label {
+        font-weight: 600;
+    }
+</style>
 {% endblock %}

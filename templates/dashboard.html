@@ -3,15 +3,76 @@
 {% block content %}
 <div class="container-fluid" style="background: linear-gradient(to right, #f8fafc, #f0fdf4); min-height: 100vh; padding: 2rem 1rem;">
     
-    <!-- Header -->
-    <div class="mb-5 text-center text-md-start">
-        <h1 class="h3 fw-bold text-dark mb-2 text-center">Welcome back!  {{ jobseeker.full_name }}</h1>
-        <p class="text-muted lead text-center">
-            Personalized job recommendations in <strong>{{ location }}</strong>
+    <!-- Header - Centered like original -->
+    <div class="mb-5 text-center">
+        <h1 class="h3 fw-bold text-dark mb-2">Welcome back! {{ jobseeker.full_name }}</h1>
+        <p class="text-muted lead">
+            {% if search_performed %}
+                Search results for <strong>"{{ search_keyword|default:'your skills' }}"</strong>
+                {% if selected_job_type %} • {{ selected_job_type|title }}{% endif %}
+                in <strong>{{ location }}</strong>
+            {% else %}
+                Personalized job recommendations in <strong>{{ location }}</strong>
+            {% endif %}
         </p>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Enhanced Search Form - Beautiful & Modern -->
+    <div class="card shadow-lg border-0 mb-5 overflow-hidden" style="border-radius: 20px; background: linear-gradient(135deg, #ffffff, #f8fafc);">
+        <div class="card-body p-5">
+            <h4 class="fw-semibold text-dark mb-4">
+                <i class="fas fa-search me-2 text-primary"></i> Find Your Dream Job
+            </h4>
+            <form method="get" class="row g-4 align-items-end">
+                <div class="col-lg-4">
+                    <label class="form-label fw-medium text-dark">Job Title or Keyword</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-briefcase text-primary"></i>
+                        </span>
+                        <input type="text" name="keyword" class="form-control border-start-0 shadow-none" 
+                               placeholder="e.g., Python Developer, Graphic Designer"
+                               value="{{ search_keyword|default:'' }}" style="font-size: 1.05rem;">
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <label class="form-label fw-medium text-dark">Location</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                        </span>
+                        <input type="text" name="location" class="form-control border-start-0 shadow-none"
+                               placeholder="e.g., Lahore, Remote"
+                               value="{{ location }}" style="font-size: 1.05rem;">
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <label class="form-label fw-medium text-dark">Job Type</label>
+                    <select name="job_type" class="form-select form-select-lg shadow-none" style="font-size: 1.05rem;">
+                        <option value="">All Types</option>
+                        {% for value, label in job_type_choices %}
+                        <option value="{{ value }}"
+                                {% if selected_job_type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-2">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                            style="padding: 0.9rem; font-weight: 600;">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards - Exact original styling -->
     <div class="row mb-5 g-4">
         <div class="col-md-4">
             <div class="card text-white border-0 shadow-lg" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 12px;">
@@ -34,7 +95,9 @@
                         <div>
                             <p class="mb-1 opacity-75" style="font-size: 0.875rem;">Best Match</p>
                             <h2 class="fw-bold mb-0" style="font-size: 2rem;">
-                                {% if jobs %}{{ jobs.0.match_score|floatformat:0 }}%{% else %}—{% endif %}
+                                {% if jobs and jobs.0.match_score is not None %}
+                                    {{ jobs.0.match_score|floatformat:0 }}%
+                                {% else %}—{% endif %}
                             </h2>
                         </div>
                         <i class="fas fa-star" style="font-size: 2rem; opacity: 0.7;"></i>
@@ -59,7 +122,9 @@
     </div>
 
     <!-- Job Recommendations -->
-    <h2 class="h4 fw-bold text-dark mb-4">Recommended Jobs</h2>
+    <h2 class="h4 fw-bold text-dark mb-4">
+        {% if search_performed %}Search Results{% else %}Recommended Jobs{% endif %}
+    </h2>
 
     {% if jobs %}
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -76,11 +141,11 @@
                             </h5>
 
                             <p class="text-muted mb-2">
-                                <strong>{{ job.company }}</strong> • {{ job.location }}
+                                <strong>{{ job.company|default:"Confidential" }}</strong> • {{ job.location|default:"Not specified" }}
                             </p>
 
                             <p class="text-muted small mb-3">
-                                Posted: {{ job.date }}
+                                Posted: {{ job.date|default:"Recently" }}
                             </p>
 
                             <!-- Match Progress Bar -->
@@ -106,12 +171,19 @@
 
                             <div class="mt-auto d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3">
                                 <span class="badge bg-primary px-3 py-2">
-                                    {{ job.job_type|title }}
+                                    {{ job.job_type|default:"Full Time"|title }}
                                 </span>
-                                <a href="{% url 'generate_resume' %}?job_url={{ job.url|urlencode }}" 
-                                   class="btn btn-sm btn-outline-primary">
-                                    Generate Resume
-                                </a>
+                                
+                                <div class="d-flex gap-2">
+                                    <a href="{{ job.url }}" target="_blank" rel="noopener"
+                                       class="btn btn-success btn-sm">
+                                        <i class="fas fa-external-link-alt me-1"></i>Apply Now
+                                    </a>
+                                    <a href="{{ job.url }}" target="_blank" rel="noopener"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View on Site
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -123,12 +195,17 @@
             <i class="fas fa-search fa-3x mb-3 text-primary"></i>
             <h5>No jobs found in <strong>{{ location }}</strong></h5>
             <p class="mb-0">
-                Try updating your skills, changing your location, or checking back later!
+                {% if search_performed %}
+                    Try different keywords or remove filters.
+                {% else %}
+                    Try updating your skills, changing your location, or checking back later!
+                {% endif %}
             </p>
         </div>
     {% endif %}
 </div>
 
+<!-- Original Styling Preserved -->
 <style>
     .card:hover {
         transform: translateY(-6px);
@@ -144,8 +221,14 @@
         transition: width 0.6s ease;
     }
 
-    .btn-outline-primary {
+    .btn-outline-primary, .btn-success {
         font-size: 0.85rem;
+    }
+
+    /* Enhanced button hover */
+    .btn-success:hover {
+        background-color: #059669;
+        transform: translateY(-2px);
     }
 
     @media (prefers-color-scheme: dark) {

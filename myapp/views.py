@@ -1,4 +1,3 @@
-# views.py
 """
 Views for the JobSeeker application.
 Handles user registration, email verification, authentication, dashboard with job recommendations,
@@ -149,9 +148,21 @@ def logout_view(request):
 # ----------------------- Protected Views -----------------------
 
 
+import http.client
+import urllib.parse
+import json
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.urls import reverse
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from .models import JobSeeker, JOB_TYPE_CHOICES
+
+
 def dashboard_view(request):
     """
-    Display personalized job recommendations using TF-IDF similarity.
+    Dashboard with manual job search + personalized recommendations fallback.
+    Supports search by keyword, location, and multiple job types.
     """
     jobseeker_id = request.session.get("jobseeker_id")
     if not jobseeker_id:
@@ -160,28 +171,21 @@ def dashboard_view(request):
 
     jobseeker = get_object_or_404(JobSeeker, id=jobseeker_id)
 
-    # Check if profile is complete
-    required_fields = [
-        jobseeker.phone_number,
-        jobseeker.location,
-        jobseeker.education,
-        jobseeker.work_experience,
-        jobseeker.skills,
-    ]
-    if not all(required_fields):
-        messages.info(request, "Please complete your profile to get personalized job recommendations.")
-        return redirect("update_profile")
+    # Base context
+    context = {
+        "jobseeker": jobseeker,
+        "job_type_choices": JOB_TYPE_CHOICES,
+        "current_location": jobseeker.location.strip() or "Lahore",
+    }
 
-    location = jobseeker.location.strip() or "Lahore"
-    user_skills_list = [s.strip() for s in jobseeker.skills.split(",") if s.strip()]
-
-    if not user_skills_list:
-        messages.warning(request, "No skills added yet. Please update your profile.")
-        return redirect("update_profile")
-
-    user_skills_text = " ".join(user_skills_list).lower()
+    # Get search parameters
+    search_keyword = request.GET.get("keyword", "").strip()
+    search_location = request.GET.get("location", "").strip() or context["current_location"]
+    selected_job_types = request.GET.getlist("job_type")  # Multiple selection
 
     jobs = []
+    search_performed = bool(search_keyword or selected_job_types)
+
     try:
         conn = http.client.HTTPSConnection("api.hasdata.com")
         headers = {
@@ -189,49 +193,95 @@ def dashboard_view(request):
             "Content-Type": "application/json",
         }
 
-        # Use the primary skill as search keyword
-        search_keyword = user_skills_list[0]
+        # Determine search keyword
+        if search_keyword:
+            keyword_to_search = search_keyword
+        else:
+            # Fallback to personalized: use first skill
+            user_skills = [s.strip() for s in jobseeker.skills.split(",") if s.strip()]
+            if not user_skills:
+                messages.info(request, "Add skills to your profile for better recommendations.")
+                context.update({"jobs": jobs, "location": search_location})
+                return render(request, "dashboard.html", context)
+            keyword_to_search = user_skills[0]
+
+        # Build endpoint
         endpoint = (
             f"/scrape/indeed/listing"
-            f"?keyword={urllib.parse.quote(search_keyword)}"
-            f"&location={urllib.parse.quote(location)}"
+            f"?keyword={urllib.parse.quote(keyword_to_search)}"
+            f"&location={urllib.parse.quote(search_location)}"
             f"&domain=pk.indeed.com"
-            f"&limit=20"
+            f"&limit=30"
         )
 
         conn.request("GET", endpoint, headers=headers)
         response = conn.getresponse()
         data = json.loads(response.read().decode("utf-8"))
+        raw_jobs = data.get("jobs", [])[:30]
 
-        raw_jobs = data.get("jobs", [])[:20]
-
-        # Prepare job descriptions for similarity matching
-        job_descriptions = [
+        # Prepare full text for TF-IDF (title + description)
+        job_texts = [
             (job.get("title", "") + " " + job.get("description", "")).lower()
             for job in raw_jobs
         ]
 
-        if job_descriptions:
-            vectorizer = TfidfVectorizer(stop_words="english")
-            tfidf_matrix = vectorizer.fit_transform([user_skills_text] + job_descriptions)
-            similarity_scores = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+        # If user has skills, compute match score
+        if jobseeker.skills.strip():
+            user_skills_text = " ".join(
+                [s.strip() for s in jobseeker.skills.split(",") if s.strip()]
+            ).lower()
 
-            for job, score in zip(raw_jobs, similarity_scores):
-                job["match_score"] = round(score * 100, 1)
-                jobs.append(job)
+            if job_texts:
+                vectorizer = TfidfVectorizer(stop_words="english")
+                tfidf_matrix = vectorizer.fit_transform([user_skills_text] + job_texts)
+                similarity_scores = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
 
-            jobs.sort(key=lambda x: x["match_score"], reverse=True)
+                for job, score in zip(raw_jobs, similarity_scores):
+                    job["match_score"] = round(score * 100, 1)
+            else:
+                for job in raw_jobs:
+                    job["match_score"] = None
+        else:
+            for job in raw_jobs:
+                job["match_score"] = None
+
+        # Filter by selected job types (if any)
+        if selected_job_types:
+            filtered_jobs = []
+            for job in raw_jobs:
+                job_type_lower = job.get("job_type", "").lower()
+                if any(jt.lower() in job_type_lower for jt in selected_job_types):
+                    filtered_jobs.append(job)
+                # Also check common variations
+                elif any(
+                    jt.lower().replace("_", " ") in job_type_lower or
+                    jt.lower().replace("_", "-") in job_type_lower
+                    for jt in selected_job_types
+                ):
+                    filtered_jobs.append(job)
+            jobs = filtered_jobs
+        else:
+            jobs = raw_jobs
+
+        # Sort by match score if available
+        if any(j.get("match_score") is not None for j in jobs):
+            jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
 
     except Exception as e:
         print(f"Error fetching jobs: {e}")
-        messages.error(request, "Could not fetch jobs right now. Please try again later.")
+        messages.error(request, "Unable to fetch jobs at the moment. Please try again later.")
+        jobs = []
 
-    context = {
-        "jobseeker": jobseeker,
+    context.update({
         "jobs": jobs,
-        "location": location,
-    }
+        "location": search_location,
+        "search_keyword": search_keyword,
+        "selected_job_types": selected_job_types,
+        "search_performed": search_performed,
+    })
+
     return render(request, "dashboard.html", context)
+
 
 
 def job_detail_view(request):
@@ -271,6 +321,10 @@ def job_detail_view(request):
     return render(request, "job_detail.html", {"job": job_detail, "meta": metadata})
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import JobSeeker, JOB_TYPE_CHOICES
+
 def update_profile_view(request):
     """
     Allow logged-in job seekers to update their profile information.
@@ -284,18 +338,28 @@ def update_profile_view(request):
 
     if request.method == 'POST':
         jobseeker.full_name = request.POST.get('full_name', jobseeker.full_name)
-        jobseeker.email = request.POST.get('email', jobseeker.email)
         jobseeker.phone_number = request.POST.get('phone_number', jobseeker.phone_number)
         jobseeker.location = request.POST.get('location', jobseeker.location)
         jobseeker.education = request.POST.get('education', jobseeker.education)
         jobseeker.work_experience = request.POST.get('work_experience', jobseeker.work_experience)
         jobseeker.skills = request.POST.get('skills', jobseeker.skills)
         jobseeker.certificate = request.POST.get('certificate', jobseeker.certificate)
-        jobseeker.job_type = request.POST.get('job_type', jobseeker.job_type)
         jobseeker.professional_references = request.POST.get('professional_references', jobseeker.professional_references)
 
+        # Handle profile picture upload
         if 'profile_picture' in request.FILES:
             jobseeker.profile_picture = request.FILES['profile_picture']
+
+        # Handle certification file upload
+        if 'certification_files' in request.FILES:
+            jobseeker.certification_files = request.FILES['certification_files']
+
+        # Handle multiple job types (from <select multiple>)
+        job_types_selected = request.POST.getlist('job_type')
+        if job_types_selected:
+            jobseeker.job_type = ','.join(job_types_selected)
+        else:
+            jobseeker.job_type = ''
 
         jobseeker.save()
         messages.success(request, "Profile updated successfully.")
@@ -303,7 +367,7 @@ def update_profile_view(request):
 
     return render(request, 'update_profile.html', {
         'jobseeker': jobseeker,
-        'job_type_choices': JOB_TYPE_CHOICES
+        'job_type_choices': JOB_TYPE_CHOICES,
     })
 
 
@@ -435,12 +499,6 @@ def generate_tailored_experience(work_experience: str, requirements: List[str], 
         lines = work_experience.split("\n")
         return [f"• {line.strip()}" for line in lines if line.strip()][:6]
 
-
-# views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-
-# ... other imports ...
 
 def generate_resume_view(request):
     if request.method != "POST":

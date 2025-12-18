@@ -3,158 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ jobseeker.full_name }} - Resume</title>
+    <title>{{ jobseeker.full_name }} - Professional Resume</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
     <style>
         :root {
-            --primary-color: #007bff;
-            --text-color: #333;
-            --light-bg: #f8f9fa;
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --text-color: #1f2937;
+            --light-bg: #f8fafc;
+            --border-color: #e2e8f0;
         }
         body {
-            background-color: var(--light-bg);
-            font-family: 'Arial', sans-serif;
+            background-color: #f1f5f9;
+            font-family: 'Georgia', 'Times New Roman', serif;
             color: var(--text-color);
-            line-height: 1.6;
+            line-height: 1.7;
         }
         .resume-container {
-            max-width: 950px;
-            margin: 50px auto;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
         }
         .resume-header {
-            background-color: #fff;
-            padding: 2rem 1.5rem;
-            border-bottom: 3px solid var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .profile-img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border: 6px solid white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
         }
         .resume-header h1 {
+            font-size: 2.4rem;
             font-weight: 700;
-            color: #212529;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+        .resume-header .job-role {
+            font-size: 1.4rem;
+            font-weight: 500;
+            opacity: 0.95;
+            margin-bottom: 1rem;
+        }
+        .contact-info {
+            font-size: 1.05rem;
+            opacity: 0.9;
+        }
+        .contact-info i {
+            margin-right: 8px;
+            font-size: 1.1rem;
         }
         .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
+            font-size: 1.35rem;
+            font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
+            margin-bottom: 1.2rem;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
         }
-        .experience-item, .education-item {
-            margin-bottom: 1.5rem;
-        }
-        .job-title, .degree-title {
-            font-weight: 600;
-            margin-bottom: 0.2rem;
-        }
-        .company-name, .institution-name {
-            font-style: italic;
-            color: #6c757d;
-            font-size: 0.95rem;
+        .main-content {
+            padding: 2.5rem;
         }
         .sidebar {
-            background-color: var(--light-bg);
-            padding: 1.5rem;
-            border-left: 1px solid #dee2e6;
+            background-color: #f8fafc;
+            padding: 2.5rem 2rem;
+            border-left: 1px solid var(--border-color);
         }
-        .skill-list li {
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 0.5rem;
+        .experience-item, .education-item {
+            margin-bottom: 1.8rem;
         }
+        .bullet-point {
+            position: relative;
+            padding-left: 1.8rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.02rem;
+        }
+        .bullet-point::before {
+            content: "▹";
+            color: var(--primary-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .skill-item {
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+        }
+        .skill-item i {
+            color: var(--primary-color);
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .cert-item {
+            margin-bottom: 0.9rem;
+            font-size: 1.02rem;
+        }
+        .cert-item i {
+            color: #f59e0b;
+            margin-right: 10px;
+        }
+
         @media print {
-            body { background: white; }
-            .resume-container { box-shadow: none; margin: 0; }
+            body { background: white; padding: 0; margin: 0; }
+            .resume-container { box-shadow: none; margin: 0; border-radius: 0; }
             .no-print { display: none !important; }
+            .resume-header { padding: 2rem; }
+            .main-content, .sidebar { padding: 2rem; }
+            @page { margin: 0.8cm; }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { border-left: none; border-top: 1px solid var(--border-color); }
         }
     </style>
 </head>
 <body>
 
-<div class="container resume-container bg-white">
-    <!-- Header -->
-    <div class="resume-header text-center">
+<div class="resume-container">
+    <!-- Header with Profile Picture -->
+    <div class="resume-header">
+        {% if jobseeker.profile_picture %}
+            <img src="{{ jobseeker.profile_picture.url }}" alt="{{ jobseeker.full_name }}" class="rounded-circle profile-img">
+        {% else %}
+            <div class="rounded-circle bg-light d-inline-block" style="width:140px;height:140px;"></div>
+        {% endif %}
         <h1>{{ jobseeker.full_name }}</h1>
-        <p class="lead">{{ job_title }} | {{ company }}</p>
-        <p class="mb-0">
-            <i class="fas fa-envelope me-2"></i>{{ jobseeker.email }}
-            <span class="mx-3">|</span>
-            <i class="fas fa-phone me-2"></i>{{ jobseeker.phone_number }}
-            <span class="mx-3">|</span>
-            <i class="fas fa-map-marker-alt me-2"></i>{{ jobseeker.location }}
-        </p>
+        <p class="job-role">{{ job_title }} at {{ company }}</p>
+        <div class="contact-info">
+            <p class="mb-1">
+                <i class="fas fa-envelope"></i>{{ jobseeker.email }}
+            </p>
+            <p class="mb-1">
+                <i class="fas fa-phone"></i>{{ jobseeker.phone_number }}
+            </p>
+            <p class="mb-0">
+                <i class="fas fa-map-marker-alt"></i>{{ jobseeker.location }}
+            </p>
+        </div>
     </div>
 
     <div class="row g-0">
-        <!-- Main Content -->
-        <div class="col-lg-8 p-4">
+        <!-- Main Content (Left Side) -->
+        <div class="col-lg-8 main-content">
             <!-- Professional Summary -->
-            <section class="mb-4">
+            <section class="mb-5">
                 <h2 class="section-title">PROFESSIONAL SUMMARY</h2>
-                <p>{{ objective|linebreaksbr }}</p>
+                <p style="font-size: 1.08rem; text-align: justify;">
+                    {{ objective|linebreaksbr }}
+                </p>
             </section>
 
-            <!-- Experience -->
-            <section class="mb-4">
-                <h2 class="section-title">EXPERIENCE</h2>
-                {% for exp in tailored_experience %}
-                    <div class="experience-item">
-                        <p class="mb-0">{{ exp }}</p>
-                    </div>
-                {% empty %}
-                    <p>No experience provided.</p>
-                {% endfor %}
+            <!-- Work Experience -->
+            <section class="mb-5">
+                <h2 class="section-title">WORK EXPERIENCE</h2>
+                {% if tailored_experience %}
+                    {% for bullet in tailored_experience %}
+                        <div class="bullet-point">{{ bullet }}</div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted fst-italic">No work experience provided.</p>
+                {% endif %}
             </section>
 
             <!-- Education -->
             <section class="mb-0">
                 <h2 class="section-title">EDUCATION</h2>
-                <div class="education-item">
-                    <p class="mb-0">{{ jobseeker.education|linebreaksbr }}</p>
-                </div>
+                <p style="font-size: 1.05rem;">
+                    {{ jobseeker.education|linebreaksbr|default:"Not specified" }}
+                </p>
             </section>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar (Right Side) -->
         <div class="col-lg-4 sidebar">
-            <!-- Skills -->
-            <section class="mb-4">
-                <h3 class="section-title text-dark">TECHNICAL SKILLS</h3>
-                <ul class="skill-list ps-3">
+            <!-- Technical Skills -->
+            <section class="mb-5">
+                <h3 class="section-title">TECHNICAL SKILLS</h3>
+                <div>
                     {% for skill in skills_list %}
-                        <li><i class="fas fa-check-circle me-2 text-primary"></i>{{ skill }}</li>
+                        <div class="skill-item">
+                            <i class="fas fa-circle-dot"></i>{{ skill }}
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small">No skills listed</p>
                     {% endfor %}
-                </ul>
+                </div>
             </section>
 
             <!-- Certifications -->
-            {% if jobseeker.certificate %}
-            <section class="mb-4">
-                <h3 class="section-title text-dark">CERTIFICATIONS</h3>
-                <ul class="list-unstyled ps-3">
+            {% if certificates %}
+            <section class="mb-5">
+                <h3 class="section-title">CERTIFICATIONS</h3>
+                <div>
                     {% for cert in certificates %}
-                        <li><i class="fas fa-certificate me-2 text-primary"></i>{{ cert }}</li>
+                        <div class="cert-item">
+                            <i class="fas fa-award"></i>{{ cert }}
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </section>
             {% endif %}
 
-            <!-- Job Type -->
+            <!-- Preferred Job Type -->
             <section class="mb-0">
-                <h3 class="section-title text-dark">JOB TYPE</h3>
-                <p>{{ jobseeker.job_type|title }}</p>
+                <h3 class="section-title">PREFERRED JOB TYPE</h3>
+                <p class="fw-medium">
+                    {% for jt in jobseeker.get_job_type_display_list %}
+                        <span class="badge bg-primary me-2 mb-2 px-3 py-2">{{ jt }}</span>
+                    {% empty %}
+                        <span class="text-muted">Not specified</span>
+                    {% endfor %}
+                </p>
             </section>
         </div>
     </div>
 </div>
 
-<!-- Print Button -->
-<div class="text-center mt-4 no-print mb-5">
-    <button onclick="window.print()" class="btn btn-primary btn-lg">
-        <i class="fas fa-print me-2 "></i>Print / Save as PDF
+<!-- Print / Save as PDF Button -->
+<div class="text-center my-5 no-print">
+    <button onclick="window.print()" class="btn btn-primary btn-lg px-5 py-3 shadow-lg">
+        <i class="fas fa-print me-3"></i>Print or Save as PDF
     </button>
+    <p class="text-muted mt-3 small">Tip: Use "Save as PDF" in print dialog for best results</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -2,6 +2,9 @@ from django.db import models
 from django.utils import timezone
 
 
+from django.db import models
+from django.utils import timezone
+
 STATUS_CHOICES = (
     ('pending', 'Pending'),
     ('approved', 'Approved'),
@@ -24,15 +27,43 @@ class JobSeeker(models.Model):
     education = models.TextField()
     work_experience = models.TextField()
     skills = models.TextField()
-    certificate = models.TextField()
-    job_type = models.CharField(max_length=20, choices=JOB_TYPE_CHOICES, default='full_time')
+    
+    # Kept for manual entry of certification names
+    certificate = models.TextField(blank=True, help_text="List your certifications (e.g., AWS Certified, Google Analytics)")
+    
+    # New: Upload certification proofs (PDF, JPG, JPEG, PNG)
+    certification_files = models.FileField(
+        upload_to='certifications/',
+        null=True,
+        blank=True,
+        help_text="Upload proof of certifications (PDF, JPG, JPEG, PNG)"
+    )
+    
+    # Changed to allow multiple job types
+    job_type = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Comma-separated list of preferred job types"
+    )
+    
     professional_references = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
     def __str__(self):
         return self.full_name
-    
+
+    def get_job_type_list(self):
+        """Helper to get list of selected job types"""
+        if self.job_type:
+            return [jt.strip() for jt in self.job_type.split(',') if jt.strip()]
+        return []
+
+    def get_job_type_display_list(self):
+        """Return human-readable job type labels"""
+        mapping = dict(JOB_TYPE_CHOICES)
+        selected = self.get_job_type_list()
+        return [mapping.get(jt, jt) for jt in selected]
 
 
 
