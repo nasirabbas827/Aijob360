@@ -134,3 +134,12 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'nasiryt.827@gmail.com'  # Your email address
 EMAIL_HOST_PASSWORD = 'ddgc zhft gohg bjmz'  # Your email password
 DEFAULT_FROM_EMAIL = 'Ai Job Hunting Tool'
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".ngrok.io",
+    "50262bbfe646.ngrok-free.app"
+]
+
+CSRF_TRUSTED_ORIGINS = ['https://50262bbfe646.ngrok-free.app']
